@@ -24,6 +24,7 @@
   import QuickActions from './QuickActions.svelte';
   import { beforeNavigate } from '$app/navigation';
   import { onMount } from 'svelte';
+  import { textToUpdate, translatedText } from '$lib/util/store';
 
   // TODO: Refactor this whole mess
   export let volumeSettings: VolumeSettings;
@@ -145,6 +146,40 @@
     }
   }
 
+  async function translateJapaneseToEnglish(japaneseText: string): Promise<string | null> {
+    const data = {
+      text: japaneseText,
+      target_lang: 'EN'
+    };
+
+    try {
+      const response = await fetch('https://deepl-proxy.fly.dev/api/v1/translate', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const translatedText = result.translations[0].text;
+        return translatedText;
+      } else {
+        throw new Error('Translation failed');
+      }
+    } catch (error) {
+      console.error('Error:', (error as Error).message);
+      return null;
+    }
+  }
+
+  async function handleClick() {
+    const currentText = $textToUpdate;
+    const result = await translateJapaneseToEnglish(currentText);
+    translatedText.set(result); // Update the store with the translated text
+  }
+
   $: charCount = $settings.charCount ? getCharCount(pages, page).charCount : 0;
   $: maxCharCount = getCharCount(pages).charCount;
   $: totalLineCount = getCharCount(pages).lineCount;
@@ -259,15 +294,26 @@
   <title>{volume?.mokuroData.volume || 'Volume'}</title>
 </svelte:head>
 {#if volume && pages}
-  <QuickActions
+  <!-- <QuickActions
     {left}
     {right}
     src1={Object.values(volume?.files)[index]}
     src2={!volumeSettings.singlePageView ? Object.values(volume?.files)[index + 1] : undefined}
-  />
+  /> -->
   <SettingsButton />
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
+  <div class="absolute top-0 left-0 w-full text-center z-30">
+    <div class="p-1 bg-green-500 cursor-pointer" on:click={handleClick}>
+      {$translatedText}
+    </div>
+    <div class="p-1 bg-blue-500 cursor-pointer" on:click={handleClick}>
+      {$textToUpdate}
+    </div>
+  </div>
+
   <Cropper />
-  <Popover placement="bottom" trigger="click" triggeredBy="#page-num" class="z-20 w-full max-w-xs">
+  <Popover placement="bottom" trigger="click" triggeredBy="#page-num" class="z-10 w-full max-w-xs">
     <div class="flex flex-col gap-3">
       <div class="flex flex-row items-center gap-5 z-10">
         <ChervonDoubleLeftSolid
@@ -309,7 +355,10 @@
       </div>
     </div>
   </Popover>
-  <button class="absolute opacity-50 left-5 top-5 z-10 mix-blend-difference" id="page-num">
+  <!-- <div class="absolute top-0 right-0 p-4 bg-blue-500 z-50">
+    I am at the top right!
+  </div> -->
+  <button class="absolute opacity-50 left-5 bottom-5 z-10 mix-blend-difference" id="page-num">
     <p class="text-left" class:hidden={!$settings.charCount}>{charDisplay}</p>
     <p class="text-left" class:hidden={!$settings.pageNum}>{pageDisplay}</p>
   </button>

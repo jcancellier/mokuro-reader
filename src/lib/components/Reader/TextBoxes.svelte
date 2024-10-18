@@ -3,6 +3,7 @@
   import type { Page } from '$lib/types';
   import { settings } from '$lib/settings';
   import { imageToWebp, showCropper, updateLastCard } from '$lib/anki-connect';
+  import { textToUpdate, translatedText } from '$lib/util/store';
 
   export let page: Page;
   export let src: File;
@@ -74,6 +75,16 @@
       onUpdateCard(lines);
     }
   }
+
+  function onClick(event: Event, lines: string[]) {
+    if (triggerMethod === 'both' || triggerMethod === 'doubleTap') {
+      event.preventDefault();
+      onUpdateCard(lines);
+
+      textToUpdate.set(lines.join(""));
+      translatedText.set("Tap text to translate");
+    }
+  }
 </script>
 
 {#each textBoxes as { fontSize, height, left, lines, top, width, writingMode }, index (`textBox-${index}`)}
@@ -91,6 +102,7 @@
     role="none"
     on:contextmenu={(e) => onContextMenu(e, lines)}
     on:dblclick={(e) => onDoubleTap(e, lines)}
+    on:click={(e) => onClick(e, lines)}
     {contenteditable}
   >
     {#each lines as line}
@@ -112,10 +124,10 @@
   }
 
   .textBox:focus,
-  .textBox:hover {
+  /* .textBox:hover {
     background: rgb(255, 255, 255);
     border: 1px solid rgba(0, 0, 0, 0);
-  }
+  } */
 
   .textBox p {
     display: none;
@@ -129,7 +141,7 @@
   }
 
   .textBox:focus p,
-  .textBox:hover p {
+  /* .textBox:hover p {
     display: table;
-  }
+  } */
 </style>
