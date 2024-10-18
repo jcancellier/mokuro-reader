@@ -5,5 +5,6 @@ export default defineConfig({
   plugins: [sveltekit()],
   server: {
     host: true
-  }
+  },
+  base: 'https://github.com/jcancellier/mokuro-reader',
 });

@@ -123,12 +123,6 @@
     z-index: 11;
   }
 
-  .textBox:focus,
-  /* .textBox:hover {
-    background: rgb(255, 255, 255);
-    border: 1px solid rgba(0, 0, 0, 0);
-  } */
-
   .textBox p {
     display: none;
     white-space: nowrap;
@@ -139,9 +133,4 @@
     font-weight: var(--bold);
     z-index: 11;
   }
-
-  .textBox:focus p,
-  /* .textBox:hover p {
-    display: table;
-  } */
 </style>
